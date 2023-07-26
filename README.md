@@ -43,3 +43,12 @@ MIN_EMAIL_DELAY = 3600  # Minimum delay of 1 hour
 
 ## Sender account
 You can use gmail to send the email notifications. To do so got to https://myaccount.google.com/apppasswords and create an app password for the account you want to use
+
+## Sound card
+
+You might need to configure the audio input device that will be used by `pyaudio`. If using linux you need to install alsa:
+
+- On a linux shell: `apt-get install alsa-utils`
+- Then find your audio input with: `arecord --list-devices` 
+
+And configure your device (need to add more details here)
