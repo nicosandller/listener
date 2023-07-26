@@ -17,8 +17,7 @@ CHUNK_SIZE = 4096
 RATE = 22050 
 WAVE_OUTPUT_FILENAME = "output.wav"
 EMAIL_ADDRESSES_TO = ["email1@email.com", "email2@email.com"]
-# Go to google app passwords and generate one to send wiht your email 
-# # https://myaccount.google.com/apppasswords
+# Sender account credentials
 EMAIL_PASSWORD = "SOME PASSWORD"
 EMAIL_ADDRESS_FROM = "sender_email@gmail.com"
 # Minimum time between notifications
@@ -40,3 +39,7 @@ MIN_EMAIL_DELAY = 3600  # Minimum delay of 1 hour
 #### RATE / CHUNK_SIZE 
 - is giving you the number of chunks per second
 - when you multiply this by RECORD_SECONDS, you get the total number of chunks needed for the recording.
+
+
+## Sender account
+You can use gmail to send the email notifications. To do so got to https://myaccount.google.com/apppasswords and create an app password for the account you want to use
