@@ -44,7 +44,17 @@ MIN_EMAIL_DELAY = 3600  # Minimum delay of 1 hour
 ## Sender account
 You can use gmail to send the email notifications. To do so got to https://myaccount.google.com/apppasswords and create an app password for the account you want to use
 
-## Sound card
+
+## Cron job
+
+You can use `crontab` + `screen` to set the script to run on every device reboot on a `screen` shell:
+
+- On a shell: `crontab -e`
+- Add the following on a line in the crontab file: `@reboot /usr/bin/screen -dmS listener /usr/bin/python3 /full/path/to/listener.py`
+
+## Sound card (for linux devices)
+
+This script works directly on a a macbook computer but if you want to run it in a linux based single board computer you'll need some extra configuration.
 
 You might need to configure the audio input device that will be used by `pyaudio`. If using linux you need to install alsa:
 
@@ -52,3 +62,8 @@ You might need to configure the audio input device that will be used by `pyaudio
 - Then find your audio input with: `arecord --list-devices` 
 
 And configure your device (need to add more details here)
+
+
+## TODO:
+- add requirements.txt
+- finish soundcard config README for linux devices
