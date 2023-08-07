@@ -5,6 +5,7 @@ import smtplib
 import threading
 import time
 import traceback
+from datetime import datetime
 from email import encoders
 from email.mime.base import MIMEBase
 from email.mime.multipart import MIMEMultipart
@@ -25,7 +26,7 @@ from config import (
     RATE,
     RECORD_SECONDS,
     THRESHOLD,
-    WAVE_OUTPUT_FILENAME,
+    WAVE_OUTPUT_PATH,
     LOG_EMAIL_INTERVAL
 )
 
@@ -93,7 +94,10 @@ last_email_sent_time = 0
 
 def write_and_send_email():
     while True:
-        frames, output_filename = audio_queue.get()
+        frames = audio_queue.get()
+
+        output_filename = f"output_{datetime.now().strftime('%Y%m%d%H%M%S')}.wav"
+        output_filepath = os.path.join(WAVE_OUTPUT_PATH, output_filename)
         
         try:
             with wave.open(output_filename, 'wb') as wf:
@@ -102,6 +106,7 @@ def write_and_send_email():
                 wf.setframerate(RATE)
                 wf.writeframes(b''.join(frames))
         except Exception:
+            print("\nFailed to write to the .wav file")
             log_exception("Failed to write to the .wav file")
 
         send_email("Loud noise detected", "", output_filename)
@@ -154,7 +159,7 @@ try:
 
             # If time since last email is more than min delay: send an email
             if time.time() - last_email_sent_time >= MIN_EMAIL_DELAY:  
-                audio_queue.put((frames, WAVE_OUTPUT_FILENAME))
+                audio_queue.put(frames)
                 last_email_sent_time = time.time()
 
 except KeyboardInterrupt:
