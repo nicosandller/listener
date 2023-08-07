@@ -26,6 +26,7 @@ from config import (
     RECORD_SECONDS,
     THRESHOLD,
     WAVE_OUTPUT_FILENAME,
+    LOG_EMAIL_INTERVAL
 )
 
 
@@ -76,7 +77,7 @@ threading.Thread(target=send_startup_email, daemon=True).start()
 # Log email
 def email_logs():
     while True:
-        time.sleep(60 * 60)  # Send every hour
+        time.sleep(LOG_EMAIL_INTERVAL)  # Send every hour
         print("\nSending logs email")
         logs_to_send = log.copy()
         log.clear()
@@ -115,28 +116,38 @@ stream = p.open(format=FORMAT, channels=1, rate=RATE, input=True, frames_per_buf
 
 rms_values = []
 last_print_time = time.time()
+last_log_time = time.time()
 
 try:
     print("* listening")
     while True:
+        current_time = time.time()
         data = stream.read(CHUNK_SIZE)
         rms = audioop.rms(data, 2)
         rms_values.append(rms)
         max_rms = max(max_rms, rms)
-        current_time = time.time()
+
+        # every 3 seconds print to terminal
         if current_time - last_print_time > 3:  # Check if 3 seconds have passed
             average_rms = sum(rms_values) / len(rms_values)
             print("\rAverage RMS: " + str(average_rms), end="")
-            log.append(f"Average RMS: {average_rms}, Max RMS: {max_rms}")
             rms_values = []  # Reset the list
-            max_rms = 0  # Reset the max RMS
             last_print_time = current_time  # Reset the timer
 
+        # every log email interval: log the max
+        if (current_time - last_log_time) > LOG_EMAIL_INTERVAL:  
+            log.append(f"Max RMS: {max_rms}")
+            print("\Max RMS for last hour: " + str(average_rms), end="")
+            max_rms = 0  # Reset the max RMS
+            last_log_time = current_time # Reset the timer
+
+        # if sound is too loud
         if rms >= THRESHOLD:
             print("\n> Loud noise detected, RMS: ", rms)
             frames = [stream.read(CHUNK_SIZE) for _ in range(int(RATE / CHUNK_SIZE * RECORD_SECONDS))]
 
-            if time.time() - last_email_sent_time >= MIN_EMAIL_DELAY:  # 3600 seconds = 1 hour
+            # If time since last email is more than min delay: send an email
+            if time.time() - last_email_sent_time >= MIN_EMAIL_DELAY:  
                 audio_queue.put((frames, WAVE_OUTPUT_FILENAME))
                 last_email_sent_time = time.time()
 
@@ -148,3 +159,6 @@ audio_queue.join()
 stream.stop_stream()
 stream.close()
 p.terminate()
+
+
+
