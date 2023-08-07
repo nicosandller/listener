@@ -120,10 +120,16 @@ last_log_time = time.time()
 
 try:
     print("* listening")
+    log.append("*Listening started")
     while True:
         current_time = time.time()
-        data = stream.read(CHUNK_SIZE)
-        rms = audioop.rms(data, 2)
+        try:
+            data = stream.read(CHUNK_SIZE)
+            rms = audioop.rms(data, 2)
+
+        except Exception as e:
+            log_exception("Exception during listening and processing")
+
         rms_values.append(rms)
         max_rms = max(max_rms, rms)
 
@@ -155,6 +161,7 @@ except KeyboardInterrupt:
     pass
 
 print("* done recording")
+log.append("*Recording stopped")
 audio_queue.join()
 stream.stop_stream()
 stream.close()
