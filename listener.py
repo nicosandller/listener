@@ -110,6 +110,12 @@ def write_and_send_email():
             log_exception("Failed to write to the .wav file")
 
         send_email("Loud noise detected", "", output_filename)
+
+        try:
+            os.remove(output_filepath)
+        except Exception:
+            log_exception("Failed to delete the .wav file")
+
         audio_queue.task_done()
 
 # Start the write_and_send_email function in a separate thread
