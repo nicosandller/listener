@@ -135,7 +135,7 @@ try:
 
         # every 3 seconds print to terminal
         if current_time - last_print_time > 3:  # Check if 3 seconds have passed
-            average_rms = sum(rms_values) / len(rms_values)
+            average_rms = round(sum(rms_values) / len(rms_values), 2)
             print("\rAverage RMS: " + str(average_rms), end="")
             rms_values = []  # Reset the list
             last_print_time = current_time  # Reset the timer
