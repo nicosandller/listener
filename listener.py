@@ -143,6 +143,14 @@ try:
     log.append("*Listening started")
     while True:
         current_time = time.time()
+
+        if not stream.is_active():
+            try:
+                stream = p.open(format=FORMAT, channels=1, rate=RATE, input=True, frames_per_buffer=CHUNK_SIZE)
+
+            except Exception as e:
+                log_exception("Audio stream was inactive, trying to reopen...")
+            
         try:
             data = stream.read(CHUNK_SIZE)
             rms = audioop.rms(data, 2)
