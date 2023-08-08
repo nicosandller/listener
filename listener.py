@@ -118,7 +118,7 @@ def write_and_send_email():
         except Exception:
             log_exception("Failed to write to the .wav file")
 
-        send_email("Loud noise detected", "", output_filename)
+        send_email("Loud noise detected", "", output_filepath)
 
         try:
             os.remove(output_filepath)
