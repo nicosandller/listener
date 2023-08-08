@@ -10,6 +10,11 @@ from email import encoders
 from email.mime.base import MIMEBase
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+import logging
+
+# Setup logging
+logging.basicConfig(filename='listener.log', level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logger = logging.getLogger()
 
 # Related third-party imports
 import audioop
@@ -38,8 +43,10 @@ FORMAT = pyaudio.paInt16
 
 def log_exception(message):
     exception = traceback.format_exc()
-    log.append(f"{message}: {exception}")
-    print(f"\n{message}: {exception}")
+    log_message = f"{message}: {exception}"
+    log.append(log_message)
+    logger.error(log_message)  # log the error message to the log file
+    print("\n" + log_message)
 
 def setup_server():
     server = smtplib.SMTP('smtp.gmail.com', 587)
@@ -84,7 +91,7 @@ def email_logs():
         print("\nSending logs email")
         logs_to_send = log.copy()
         log.clear()
-        send_email("24 hours log", '\n'.join(logs_to_send))
+        send_email("exception log", '\n'.join(logs_to_send))
 
 threading.Thread(target=email_logs, daemon=True).start()
 
