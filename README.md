@@ -1,6 +1,14 @@
-# Listener
-Listen to loud noises and send out a notification
 
+# Listener - An Audio Monitoring System
+
+Listener is a Python-based audio monitoring system that detects loud noises and sends an email alert with an attached audio clip of the detected noise. The application is designed to run in the background, monitoring the surrounding environment continuously.
+
+## Features
+
+- Real-time audio monitoring
+- RMS computation for noise detection
+- Email alerts with attached audio file when a loud noise is detected
+- Regular status updates via email
 
 ## Config file
 

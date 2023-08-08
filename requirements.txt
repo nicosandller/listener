@@ -1,0 +1,8 @@
+pyaudio==0.2.11
+audioop==2.7.1
+smtplib==3.8.0
+traceback==3.8.0
+queue==3.8.0
+os==3.8.0
+wave==3.8.0
+email==6.0.0
