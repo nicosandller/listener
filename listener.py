@@ -39,6 +39,7 @@ FORMAT = pyaudio.paInt16
 def log_exception(message):
     exception = traceback.format_exc()
     log.append(f"{message}: {exception}")
+    print(f"{message}: {exception}")
 
 def setup_server():
     server = smtplib.SMTP('smtp.gmail.com', 587)
@@ -62,6 +63,7 @@ def send_email(subject, body, attachment_path=None):
     
     try:
         server = setup_server()
+        print("\nsending email...")
         server.sendmail(EMAIL_ADDRESS_FROM, EMAIL_ADDRESSES_TO, msg.as_string())
         server.quit()
     except Exception:
@@ -95,6 +97,7 @@ last_email_sent_time = 0
 def write_and_send_email():
     while True:
         frames = audio_queue.get()
+        print("\nwriting audio file...")
 
         output_filename = f"output_{datetime.now().strftime('%Y%m%d%H%M%S')}.wav"
         output_filepath = os.path.join(WAVE_OUTPUT_PATH, output_filename)
@@ -106,7 +109,6 @@ def write_and_send_email():
                 wf.setframerate(RATE)
                 wf.writeframes(b''.join(frames))
         except Exception:
-            print("\nFailed to write to the .wav file")
             log_exception("Failed to write to the .wav file")
 
         send_email("Loud noise detected", "", output_filename)
