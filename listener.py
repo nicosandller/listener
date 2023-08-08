@@ -39,7 +39,7 @@ FORMAT = pyaudio.paInt16
 def log_exception(message):
     exception = traceback.format_exc()
     log.append(f"{message}: {exception}")
-    print(f"{message}: {exception}")
+    print(f"\n{message}: {exception}")
 
 def setup_server():
     server = smtplib.SMTP('smtp.gmail.com', 587)
@@ -103,7 +103,7 @@ def write_and_send_email():
         output_filepath = os.path.join(WAVE_OUTPUT_PATH, output_filename)
         
         try:
-            with wave.open(output_filename, 'wb') as wf:
+            with wave.open(output_filepath, 'wb') as wf:
                 wf.setnchannels(1)
                 wf.setsampwidth(p.get_sample_size(FORMAT))
                 wf.setframerate(RATE)
