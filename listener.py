@@ -37,8 +37,10 @@ from config import (
 
 
 log = []
+rms_values = []
 max_rms = 0
-
+# initialize last email sent time to 0
+last_email_sent_time = 0
 FORMAT = pyaudio.paInt16
 
 def log_exception(message):
@@ -98,9 +100,6 @@ threading.Thread(target=email_logs, daemon=True).start()
 # Create a queue to hold the audio data
 audio_queue = queue.Queue()
 
-# Store the timestamp of the last email sent
-last_email_sent_time = 0
-
 def write_and_send_email():
     while True:
         frames = audio_queue.get()
@@ -130,70 +129,73 @@ def write_and_send_email():
 # Start the write_and_send_email function in a separate thread
 threading.Thread(target=write_and_send_email, daemon=True).start()
 
-p = pyaudio.PyAudio()
 
-stream = p.open(format=FORMAT, channels=1, rate=RATE, input=True, frames_per_buffer=CHUNK_SIZE)
+def main_loop():
+    global last_email_sent_time, rms_values, max_rms, log
 
-rms_values = []
-last_print_time = time.time()
-last_log_time = time.time()
+    p = pyaudio.PyAudio()
 
-try:
-    print("* listening")
-    log.append("*Listening started")
-    while True:
-        current_time = time.time()
+    stream = p.open(format=FORMAT, channels=1, rate=RATE, input=True, frames_per_buffer=CHUNK_SIZE)
 
-        if not stream.is_active():
+    last_print_time = time.time()
+    last_log_time = time.time()
+
+    try:
+        print("* listening")
+        log.append("*Listening started")
+        while True:
+            current_time = time.time()
+
+            if not stream.is_active():
+                try:
+                    stream = p.open(format=FORMAT, channels=1, rate=RATE, input=True, frames_per_buffer=CHUNK_SIZE)
+
+                except Exception as e:
+                    log_exception("Audio stream was inactive, trying to reopen...")
+                
             try:
-                stream = p.open(format=FORMAT, channels=1, rate=RATE, input=True, frames_per_buffer=CHUNK_SIZE)
+                data = stream.read(CHUNK_SIZE)
+                rms = audioop.rms(data, 2)
 
             except Exception as e:
-                log_exception("Audio stream was inactive, trying to reopen...")
-            
-        try:
-            data = stream.read(CHUNK_SIZE)
-            rms = audioop.rms(data, 2)
+                log_exception("Exception during listening and processing")
 
-        except Exception as e:
-            log_exception("Exception during listening and processing")
+            rms_values.append(rms)
+            max_rms = max(max_rms, rms)
 
-        rms_values.append(rms)
-        max_rms = max(max_rms, rms)
+            # every 3 seconds print to terminal
+            if current_time - last_print_time > 3:  # Check if 3 seconds have passed
+                average_rms = round(sum(rms_values) / len(rms_values), 2)
+                print("\rAverage RMS: " + str(average_rms), end="")
+                rms_values = []  # Reset the list
+                last_print_time = current_time  # Reset the timer
 
-        # every 3 seconds print to terminal
-        if current_time - last_print_time > 3:  # Check if 3 seconds have passed
-            average_rms = round(sum(rms_values) / len(rms_values), 2)
-            print("\rAverage RMS: " + str(average_rms), end="")
-            rms_values = []  # Reset the list
-            last_print_time = current_time  # Reset the timer
+            # every log email interval: log the max
+            if (current_time - last_log_time) > LOG_EMAIL_INTERVAL:  
+                log.append(f"Max RMS: {max_rms}")
+                print("\Max RMS for last hour: " + str(average_rms), end="")
+                max_rms = 0  # Reset the max RMS
+                last_log_time = current_time # Reset the timer
 
-        # every log email interval: log the max
-        if (current_time - last_log_time) > LOG_EMAIL_INTERVAL:  
-            log.append(f"Max RMS: {max_rms}")
-            print("\Max RMS for last hour: " + str(average_rms), end="")
-            max_rms = 0  # Reset the max RMS
-            last_log_time = current_time # Reset the timer
+            # if sound is too loud
+            if rms >= THRESHOLD:
+                print("\n> Loud noise detected, RMS: ", rms)
+                frames = [stream.read(CHUNK_SIZE) for _ in range(int(RATE / CHUNK_SIZE * RECORD_SECONDS))]
 
-        # if sound is too loud
-        if rms >= THRESHOLD:
-            print("\n> Loud noise detected, RMS: ", rms)
-            frames = [stream.read(CHUNK_SIZE) for _ in range(int(RATE / CHUNK_SIZE * RECORD_SECONDS))]
+                # If time since last email is more than min delay: send an email
+                if time.time() - last_email_sent_time >= MIN_EMAIL_DELAY:  
+                    audio_queue.put(frames)
+                    last_email_sent_time = time.time()
 
-            # If time since last email is more than min delay: send an email
-            if time.time() - last_email_sent_time >= MIN_EMAIL_DELAY:  
-                audio_queue.put(frames)
-                last_email_sent_time = time.time()
+    except KeyboardInterrupt:
+        pass
 
-except KeyboardInterrupt:
-    pass
+    print("* done recording")
+    log.append("*Recording stopped")
+    audio_queue.join()
+    stream.stop_stream()
+    stream.close()
+    p.terminate()
 
-print("* done recording")
-log.append("*Recording stopped")
-audio_queue.join()
-stream.stop_stream()
-stream.close()
-p.terminate()
-
-
-
+if __name__ == "__main__":
+    main_loop()
