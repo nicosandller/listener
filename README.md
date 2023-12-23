@@ -55,10 +55,22 @@ You can use gmail to send the email notifications. To do so got to https://myacc
 
 ## Cron job
 
-You can use `crontab` + `screen` to set the script to run on every device reboot on a `screen` shell:
+You can use[`crontab`](https://man7.org/linux/man-pages/man5/crontab.5.html) + [`screen`](https://linux.die.net/man/1/screen) to set the script to run on every device reboot on a `screen` shell:
 
 - On a shell: `crontab -e`
 - Add the following on a line in the crontab file: `@reboot /usr/bin/screen -dmS listener /usr/bin/python3 /full/path/to/listener.py`
+
+## Screen
+
+To look at the screen shell:
+```
+ screen -ls
+.....
+screen -r [session name]
+.....
+To close the session without closing it, inside the screen session, press Ctrl + A.
+Then, press D.
+```
 
 ## Sound card (for linux devices)
 
