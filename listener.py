@@ -12,15 +12,15 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 import logging
 
-# Setup logging
-logging.basicConfig(filename='listener.log', level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
-logger = logging.getLogger()
-p = pyaudio.PyAudio()
-
 # Related third-party imports
 import audioop
 import pyaudio
 import wave
+
+# Setup logging
+logging.basicConfig(filename='listener.log', level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logger = logging.getLogger()
+p = pyaudio.PyAudio()
 
 # Local application/library-specific imports
 from config import (
