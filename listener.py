@@ -15,6 +15,7 @@ import logging
 # Setup logging
 logging.basicConfig(filename='listener.log', level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger()
+p = pyaudio.PyAudio()
 
 # Related third-party imports
 import audioop
@@ -132,8 +133,6 @@ threading.Thread(target=write_and_send_email, daemon=True).start()
 
 def main_loop():
     global last_email_sent_time, rms_values, max_rms, log
-
-    p = pyaudio.PyAudio()
 
     stream = p.open(format=FORMAT, channels=1, rate=RATE, input=True, frames_per_buffer=CHUNK_SIZE)
 
